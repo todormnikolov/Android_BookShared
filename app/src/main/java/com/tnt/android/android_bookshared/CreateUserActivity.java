@@ -12,6 +12,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.firebase.client.Firebase;
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
 import com.tnt.android.android_bookshared.common.User;
 import com.tnt.android.android_bookshared.database.UserDbHelper;
 import com.tnt.android.android_bookshared.database.UserDbUtils;
@@ -47,7 +49,7 @@ public class CreateUserActivity extends AppCompatActivity {
 
                 //Check for username exists in db
                 if (usernameExists(username)) {
-                    Toast toast = Toast.makeText(getApplicationContext(), "This user already exists in db!", Toast.LENGTH_LONG);
+                    Toast toast = Toast.makeText(getApplicationContext(), "This username is not available!", Toast.LENGTH_LONG);
                     toast.show();
                     return;
                 }
@@ -67,30 +69,33 @@ public class CreateUserActivity extends AppCompatActivity {
 
                     User user = new User(username, password, name);
 
+                    //store data for current username in memory
+                    SharedPreferences sp = getSharedPreferences("user_details", MODE_PRIVATE);
+                    sp.edit().putString("username", user.getUsername()).apply();
+                    sp.edit().putString("password", user.getPassword()).apply();
+
                     //write user to db
                     //writeRecord(user);
 
                     // save to firebase
                     writeUserToFirebase(user);
+                    getUserLocation();
 
-                    //Toast info for creation user
-                    Toast toast = Toast.makeText(getApplicationContext(), "This user save in db!", Toast.LENGTH_LONG);
-                    toast.show();
+                    if ((sp.getFloat("latitude", 0f) == 0f) || sp.getFloat("longitude", 0f) == 0f){
+                        Toast toast = Toast.makeText(getApplicationContext(), "Failed retrieve your location!", Toast.LENGTH_LONG);
+                        toast.show();
+                    }else{
+                        Toast toast = Toast.makeText(getApplicationContext(), "Your profile is created! Username: " + username + " is ready to use", Toast.LENGTH_LONG);
+                        toast.show();
 
-                    //store current username in memory
-                    SharedPreferences sp = getSharedPreferences("user_details", MODE_PRIVATE);
-                    sp.edit().putString("username", user.getUsername()).apply();
-                    sp.edit().putString("password", user.getPassword()).apply();
-
-                    Intent intent = new Intent(CreateUserActivity.this, LogInActivity.class);
-                    startActivity(intent);
+                        Intent intent = new Intent(CreateUserActivity.this, LogInActivity.class);
+                        startActivity(intent);
+                    }
                 }
-
             }
         });
 
         btnCancel = (Button) findViewById(R.id.btn_cancel);
-
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -99,12 +104,37 @@ public class CreateUserActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 1) {
+            Bundle extras = data.getExtras();
+
+            SharedPreferences sp = getSharedPreferences("user_details", MODE_PRIVATE);
+            double longitude = extras.getDouble("Longitude");
+            double latitude = extras.getDouble("Latitude");
+
+            sp.edit().putFloat("longitude", (float) longitude).apply();
+            sp.edit().putFloat("latitude", (float) latitude).apply();
+
+            saveLocationToFirebase(sp.getString("username", ""), latitude, longitude);
+        }
+    }
+
+    public static void saveLocationToFirebase(String username, double latitude, double longitude) {
+        GeoFire geoFire = new GeoFire(new Firebase("https://bookshared-9cc21.firebaseio.com/users/" + username));
+        geoFire.setLocation("location", new GeoLocation(latitude, longitude));
+    }
+
+    private void getUserLocation() {
+        Intent intent = new Intent(getApplicationContext(), GPSTrackerActivity.class);
+        startActivityForResult(intent, 1);
+    }
+
     private void writeUserToFirebase(User user) {
-
         Firebase ref = new Firebase("https://bookshared-9cc21.firebaseio.com/");
-
         Firebase userRef = ref.child("users").child(user.getUsername());
-
         userRef.setValue(user);
     }
 

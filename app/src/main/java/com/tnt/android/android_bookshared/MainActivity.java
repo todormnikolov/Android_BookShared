@@ -93,8 +93,6 @@ public class MainActivity extends AppCompatActivity {
 
         } else if (id == R.id.user_log_out) {
             SharedPreferences sp = getSharedPreferences("user_details", MODE_PRIVATE);
-            sp.edit().putString("username", "").apply();
-            sp.edit().putString("password", "").apply();
             sp.edit().putBoolean("isLogged", false).apply();
 
             Intent intent = new Intent(MainActivity.this, LogInActivity.class);
@@ -112,8 +110,15 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == 1){
             Bundle extras = data.getExtras();
-            Double longitude = extras.getDouble("Longitude");
-            Double latitude = extras.getDouble("Latitude");
+            double longitude = extras.getDouble("Longitude");
+            double latitude = extras.getDouble("Latitude");
+
+            SharedPreferences sp = getSharedPreferences("user_details", MODE_PRIVATE);
+
+            sp.edit().putFloat("longitude", (float) longitude).apply();
+            sp.edit().putFloat("latitude", (float) latitude).apply();
+
+            CreateUserActivity.saveLocationToFirebase(sp.getString("username", ""), latitude, longitude);
 
             Toast.makeText(getApplicationContext(), "Your longtitude: " + longitude + "and your latitude: " + latitude, Toast.LENGTH_LONG).show();
         }
