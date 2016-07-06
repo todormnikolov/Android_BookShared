@@ -35,7 +35,7 @@
             android:layout_marginBottom="16dp"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            android:text="For further using BOOKSHARED require log in with your username and password! After fill these fields press the button Sign in."/>
+            android:text="For further using BOOKSHARED require log in with your username and password!"/>
 
         <EditText
             android:id="@+id/edit_username"
@@ -51,11 +51,17 @@
             android:hint="Enter your password"
             android:textSize="24sp" />
 
-        <Button
-            android:id="@+id/btn_sign_in"
+        <CheckBox
+            android:id="@+id/check_auto_login"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sign in"
+            android:text="Auto login"/>
+
+        <Button
+            android:id="@+id/btn_log_in"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Log in"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"/>
     </LinearLayout>

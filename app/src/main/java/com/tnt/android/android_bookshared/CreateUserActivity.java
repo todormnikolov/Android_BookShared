@@ -5,11 +5,13 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.firebase.client.Firebase;
 import com.tnt.android.android_bookshared.common.User;
 import com.tnt.android.android_bookshared.database.UserDbHelper;
 import com.tnt.android.android_bookshared.database.UserDbUtils;
@@ -29,7 +31,6 @@ public class CreateUserActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_user_account);
-
         userDbUtils = UserDbUtils.getInstance(this);
 
         editUsername = (EditText) findViewById(R.id.edit_username);
@@ -67,17 +68,21 @@ public class CreateUserActivity extends AppCompatActivity {
                     User user = new User(username, password, name);
 
                     //write user to db
-                    writeRecord(user);
+                    //writeRecord(user);
+
+                    // save to firebase
+                    writeUserToFirebase(user);
 
                     //Toast info for creation user
                     Toast toast = Toast.makeText(getApplicationContext(), "This user save in db!", Toast.LENGTH_LONG);
                     toast.show();
 
                     //store current username in memory
-                    SharedPreferences sp = getApplicationContext().getSharedPreferences("user_details", MODE_PRIVATE);
-                    sp.edit().putString("username", username).apply();
+                    SharedPreferences sp = getSharedPreferences("user_details", MODE_PRIVATE);
+                    sp.edit().putString("username", user.getUsername()).apply();
+                    sp.edit().putString("password", user.getPassword()).apply();
 
-                    Intent intent = new Intent(CreateUserActivity.this, MainActivity.class);
+                    Intent intent = new Intent(CreateUserActivity.this, LogInActivity.class);
                     startActivity(intent);
                 }
 
@@ -94,6 +99,16 @@ public class CreateUserActivity extends AppCompatActivity {
         });
     }
 
+    private void writeUserToFirebase(User user) {
+
+        Firebase ref = new Firebase("https://bookshared-9cc21.firebaseio.com/");
+
+        Firebase userRef = ref.child("users").child(user.getUsername());
+
+        userRef.setValue(user);
+    }
+
+    //not using
     private void writeRecord(User user) {
         userDbUtils.writeUserRecord(user);
     }
