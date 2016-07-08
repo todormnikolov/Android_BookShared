@@ -7,11 +7,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 
 import com.tnt.android.android_bookshared.database.FirebaseDB;
 
@@ -33,10 +35,37 @@ public class MainActivity extends AppCompatActivity {
 
         viewPager = (ViewPager) findViewById(R.id.books_pager);
         setupViewPager(viewPager);
+        viewPager.addOnPageChangeListener(onPageChangeListener);
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
     }
+
+    ViewPager.OnPageChangeListener onPageChangeListener = new ViewPager.OnPageChangeListener() {
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+
+        @Override
+        public void onPageSelected(int position) {
+            ViewGroup vg = (ViewGroup) tabLayout.getChildAt(0);
+
+            int tabsCount = vg.getChildCount();
+            for (int i = 0; i < tabsCount; i++) {
+                int delay = (i * 150) + 250;
+                ViewGroup vgTab = (ViewGroup) vg.getChildAt(i);
+                vgTab.setScaleX(0f);
+                vgTab.setScaleY(0f);
+
+                vgTab.animate().scaleX(1f).scaleY(1f).setStartDelay(delay)
+                        .setInterpolator(new FastOutSlowInInterpolator())
+                        .setDuration(450)
+                        .start();
+            }
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {}
+    };
 
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
@@ -62,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if(id == R.id.user_edit_location){
+        if (id == R.id.user_edit_location) {
 
             Intent intent = new Intent(getApplicationContext(), EditLocationActivity.class);
             startActivity(intent);
@@ -80,8 +109,7 @@ public class MainActivity extends AppCompatActivity {
 
             Intent intent = new Intent(MainActivity.this, LogInActivity.class);
             startActivity(intent);
-        }
-        else if (id == android.R.id.home) {
+        } else if (id == android.R.id.home) {
 
             return true;
         }
@@ -91,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == 1){
+        if (requestCode == 1) {
             Bundle extras = data.getExtras();
             double longitude = extras.getDouble("Longitude");
             double latitude = extras.getDouble("Latitude");
