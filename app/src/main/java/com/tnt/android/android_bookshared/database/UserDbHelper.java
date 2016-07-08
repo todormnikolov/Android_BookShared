@@ -8,20 +8,18 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.tnt.android.android_bookshared.common.User;
 
-/**
- * Created by USER on 30.6.2016 г..
- */
 public class UserDbHelper extends SQLiteOpenHelper {
-
 
     protected SQLiteDatabase database;
 
     public static final String DB_NAME = "db_users";
-    public static final int DB_VERSION = 1;
+    public static final int DB_VERSION = 2;
     public static final String DB_TABLE_USERS = "DB_TABLE_USERS";
     public static final String KEY_USERNAME = "USERNAME";
-    public static final String KEY_PASSWORD = "PASSWORD";
-    public static final String KEY_NAME = "NAME";
+    public static final String KEY_LATITUDE = "LATITUDE";
+    public static final String KEY_LONGITUDE = "LONGITUDE";
+    //public static final String KEY_PASSWORD = "PASSWORD";
+    //public static final String KEY_NAME = "NAME";
 
     public UserDbHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -31,8 +29,8 @@ public class UserDbHelper extends SQLiteOpenHelper {
     public void insertUser(User user) {
         ContentValues cv = new ContentValues();
         cv.put(KEY_USERNAME, user.getUsername());
-        cv.put(KEY_PASSWORD, user.getPassword());
-        cv.put(KEY_NAME, user.getName());
+        cv.put(KEY_LATITUDE, user.getLatitude());
+        cv.put(KEY_LONGITUDE, user.getLongitude());
         database.insert(DB_TABLE_USERS, null, cv);
     }
 
@@ -45,8 +43,8 @@ public class UserDbHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE IF NOT EXISTS "
                 + DB_TABLE_USERS + " (_id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + KEY_USERNAME + " TEXT, "
-                + KEY_PASSWORD + " TEXT,"
-                + KEY_NAME + " TEXT);");
+                + KEY_LATITUDE + " REAL,"
+                + KEY_LONGITUDE + " REAL);");
     }
 
     @Override
@@ -60,6 +58,6 @@ public class UserDbHelper extends SQLiteOpenHelper {
     }
 
     public Cursor getUserValues() {
-        return this.database.query(DB_TABLE_USERS, new String[]{KEY_USERNAME, KEY_PASSWORD, KEY_NAME}, null, null, null, null, null);
+        return this.database.query(DB_TABLE_USERS, new String[]{KEY_USERNAME, KEY_LATITUDE, KEY_LONGITUDE}, null, null, null, null, null);
     }
 }

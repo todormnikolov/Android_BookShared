@@ -23,7 +23,8 @@
         <activity android:name=".CreateUserActivity" />
         <activity android:name=".MainActivity" />
         <activity android:name=".GPSTrackerActivity" />
-        <activity android:name=".AddBookActivity"></activity>
+        <activity android:name=".AddBookActivity" />
+        <activity android:name=".EditLocationActivity"></activity>
     </application>
 
 </manifest>

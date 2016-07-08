@@ -15,6 +15,8 @@ import com.firebase.client.Firebase;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.tnt.android.android_bookshared.common.User;
+import com.tnt.android.android_bookshared.database.FirebaseDB;
+import com.tnt.android.android_bookshared.database.SharedPreferencesUtils;
 import com.tnt.android.android_bookshared.database.UserDbHelper;
 import com.tnt.android.android_bookshared.database.UserDbUtils;
 
@@ -60,7 +62,6 @@ public class CreateUserActivity extends AppCompatActivity {
 
                 //compare two fields for equals password
                 if (password.length() > 2 && password.equals(rePassword)) {
-
                     String name = editName.getText().toString().trim();
 
                     //check for valid name
@@ -74,23 +75,32 @@ public class CreateUserActivity extends AppCompatActivity {
                     sp.edit().putString("username", user.getUsername()).apply();
                     sp.edit().putString("password", user.getPassword()).apply();
 
-                    //write user to db
-                    //writeRecord(user);
-
-                    // save to firebase
-                    writeUserToFirebase(user);
                     getUserLocation();
 
-                    if ((sp.getFloat("latitude", 0f) == 0f) || sp.getFloat("longitude", 0f) == 0f){
-                        Toast toast = Toast.makeText(getApplicationContext(), "Failed retrieve your location!", Toast.LENGTH_LONG);
-                        toast.show();
-                    }else{
-                        Toast toast = Toast.makeText(getApplicationContext(), "Your profile is created! Username: " + username + " is ready to use", Toast.LENGTH_LONG);
-                        toast.show();
+                    float latitude = sp.getFloat("latitude", 0f);
+                    float longitude = sp.getFloat("longitude", 0f);
+
+                    if ((latitude == 0f) || longitude == 0f) {
+                        deleteSharedPreference(SharedPreferencesUtils.SP_USER);
+                        Toast.makeText(getApplicationContext(), "Failed retrieve your location!", Toast.LENGTH_LONG).show();
+                    } else {
+
+                        user.setLatitude(latitude);
+                        user.setLongitude(longitude);
+
+                        //save to sqlite
+                        userDbUtils.writeUserRecord(user);
+
+                        // save to firebase
+                        FirebaseDB.writeUserToFirebase(user);
+
+                        Toast.makeText(getApplicationContext(), "Your profile is created! Username: " + username + " is ready to use", Toast.LENGTH_LONG).show();
 
                         Intent intent = new Intent(CreateUserActivity.this, LogInActivity.class);
                         startActivity(intent);
                     }
+                } else {
+                    Toast.makeText(getApplicationContext(), "Impossible to create user with input data!", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -102,6 +112,10 @@ public class CreateUserActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    private void deleteSharedPreference(String name) {
+        getSharedPreferences(name, 0).edit().clear().apply();
     }
 
     @Override
@@ -117,14 +131,7 @@ public class CreateUserActivity extends AppCompatActivity {
 
             sp.edit().putFloat("longitude", (float) longitude).apply();
             sp.edit().putFloat("latitude", (float) latitude).apply();
-
-            saveLocationToFirebase(sp.getString("username", ""), latitude, longitude);
         }
-    }
-
-    public static void saveLocationToFirebase(String username, double latitude, double longitude) {
-        GeoFire geoFire = new GeoFire(new Firebase("https://bookshared-9cc21.firebaseio.com/users/" + username));
-        geoFire.setLocation("location", new GeoLocation(latitude, longitude));
     }
 
     private void getUserLocation() {
@@ -132,19 +139,10 @@ public class CreateUserActivity extends AppCompatActivity {
         startActivityForResult(intent, 1);
     }
 
-    private void writeUserToFirebase(User user) {
-        Firebase ref = new Firebase("https://bookshared-9cc21.firebaseio.com/");
-        Firebase userRef = ref.child("users").child(user.getUsername());
-        userRef.setValue(user);
-    }
-
-    //not using
-    private void writeRecord(User user) {
-        userDbUtils.writeUserRecord(user);
-    }
 
     private boolean usernameExists(String username) {
         Cursor cursor = userDbUtils.readUserRecord();
+
         if (cursor.moveToFirst()) {
             do {
                 String nodeUsername = cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_USERNAME));

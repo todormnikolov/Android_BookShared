@@ -14,6 +14,13 @@ public class Book {
 
     }
 
+    public Book(String title, String author, String owner){
+        setTitle(title);
+        setAuthor(author);
+        setOriginalOwner(owner);
+        setCurrentOwner(owner);
+    }
+
     public String getTitle() {
         return title;
     }

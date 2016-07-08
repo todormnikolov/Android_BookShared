@@ -6,19 +6,14 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
+
+import com.tnt.android.android_bookshared.database.FirebaseDB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        //getSupportActionBar().setIcon(R.drawable.logo); //add icon in toolbar
         getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(true);
 
         viewPager = (ViewPager) findViewById(R.id.books_pager);
@@ -68,21 +62,10 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.user_profile) {
+        if(id == R.id.user_edit_location){
 
-            //User profile is clicked
-
-            return true;
-        }
-        else if(id == R.id.user_edit_location){
-
-            Intent intent = new Intent(getApplicationContext(), GPSTrackerActivity.class);
-            startActivityForResult(intent,1);
-
-            return true;
-        }
-        else if (id == R.id.user_settings) {
-
+            Intent intent = new Intent(getApplicationContext(), EditLocationActivity.class);
+            startActivity(intent);
 
             return true;
         } else if (id == R.id.book_search) {
@@ -118,9 +101,7 @@ public class MainActivity extends AppCompatActivity {
             sp.edit().putFloat("longitude", (float) longitude).apply();
             sp.edit().putFloat("latitude", (float) latitude).apply();
 
-            CreateUserActivity.saveLocationToFirebase(sp.getString("username", ""), latitude, longitude);
-
-            Toast.makeText(getApplicationContext(), "Your longtitude: " + longitude + "and your latitude: " + latitude, Toast.LENGTH_LONG).show();
+            FirebaseDB.saveLocationToFirebase(sp.getString("username", ""), (float) latitude, (float) longitude);
         }
     }
 

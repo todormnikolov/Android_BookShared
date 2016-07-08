@@ -5,9 +5,7 @@ import android.database.Cursor;
 
 import com.tnt.android.android_bookshared.common.User;
 
-/**
- * Created by USER on 30.6.2016 г..
- */
+
 public class UserDbUtils {
 
     private static UserDbUtils instance;
