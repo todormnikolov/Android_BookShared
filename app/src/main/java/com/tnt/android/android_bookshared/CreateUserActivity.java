@@ -11,9 +11,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.firebase.client.Firebase;
-import com.firebase.geofire.GeoFire;
-import com.firebase.geofire.GeoLocation;
 import com.tnt.android.android_bookshared.common.User;
 import com.tnt.android.android_bookshared.database.FirebaseDB;
 import com.tnt.android.android_bookshared.database.SharedPreferencesUtils;
@@ -29,13 +26,15 @@ public class CreateUserActivity extends AppCompatActivity {
     Button btnCreate;
     Button btnCancel;
 
-    UserDbUtils userDbUtils;
+    private UserDbUtils userDbUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_user_account);
+
         userDbUtils = UserDbUtils.getInstance(this);
+
 
         editUsername = (EditText) findViewById(R.id.edit_username);
         editPassword = (EditText) findViewById(R.id.edit_password);
@@ -88,11 +87,16 @@ public class CreateUserActivity extends AppCompatActivity {
                         user.setLatitude(latitude);
                         user.setLongitude(longitude);
 
-                        //save to sqlite
+                        Log.e("TAG", "lat: " + user.getLatitude() + ", long: " + user.getLongitude());
+
+                        //save user to sqlite
                         userDbUtils.writeUserRecord(user);
 
-                        // save to firebase
-                        FirebaseDB.writeUserToFirebase(user);
+                        //to delete
+                        //printUserInSQLite();
+
+                        // save user to firebase
+                        FirebaseDB.writeUser(user);
 
                         Toast.makeText(getApplicationContext(), "Your profile is created! Username: " + username + " is ready to use", Toast.LENGTH_LONG).show();
 
@@ -100,7 +104,7 @@ public class CreateUserActivity extends AppCompatActivity {
                         startActivity(intent);
                     }
                 } else {
-                    Toast.makeText(getApplicationContext(), "Impossible to create user with input data!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Impossible to create user with this input data!", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -112,6 +116,26 @@ public class CreateUserActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    private void printUserInSQLite() {
+        Cursor cursor = userDbUtils.readUserRecord();
+
+        if (cursor.moveToFirst()) {
+            do {
+                String nodeUsername = cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_USERNAME));
+                float latitude = cursor.getFloat(cursor.getColumnIndex(UserDbHelper.KEY_LATITUDE));
+                float longitude = cursor.getFloat(cursor.getColumnIndex(UserDbHelper.KEY_LONGITUDE));
+                Log.e("TAG", "Reading from database. User: " + nodeUsername + ", latitude: " + latitude + ", longitude: " + longitude);
+//                    if (nodeUsername.equals(username)) {
+//                        if (cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_)).equals(password)) {
+//                            return true;
+//                        }
+//                    }
+
+            } while (cursor.moveToNext());
+        }
+
     }
 
     private void deleteSharedPreference(String name) {
@@ -126,11 +150,12 @@ public class CreateUserActivity extends AppCompatActivity {
             Bundle extras = data.getExtras();
 
             SharedPreferences sp = getSharedPreferences("user_details", MODE_PRIVATE);
-            double longitude = extras.getDouble("Longitude");
-            double latitude = extras.getDouble("Latitude");
+            float longitude = (float)extras.getDouble("Longitude");
+            float latitude = (float)extras.getDouble("Latitude");
 
-            sp.edit().putFloat("longitude", (float) longitude).apply();
-            sp.edit().putFloat("latitude", (float) latitude).apply();
+            sp.edit().putFloat(SharedPreferencesUtils.SP_USER_LATITUDE, latitude).apply();
+            sp.edit().putFloat(SharedPreferencesUtils.SP_USER_LONGITUDE, longitude).apply();
+
         }
     }
 

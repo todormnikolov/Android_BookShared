@@ -9,13 +9,15 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:background="@android:drawable/ic_input_add"/>
+        android:text="Add book"
+        android:textStyle="bold"
+        android:textSize="20sp"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/btn_add_book"
-        android:text="Your books"
+        android:text="My books"
         android:gravity="center"
         android:textSize="40sp"
         android:textColor="#000"

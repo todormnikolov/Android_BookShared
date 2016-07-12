@@ -36,7 +36,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/txt_latitude_label"
-        android:text="Latitude: "/>
+        android:text="Longitude: "/>
 
     <TextView
         android:id="@+id/txt_longitude_value"

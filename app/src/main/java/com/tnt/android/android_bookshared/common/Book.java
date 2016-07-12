@@ -14,11 +14,11 @@ public class Book {
 
     }
 
-    public Book(String title, String author, String owner){
+    public Book(String title, String author, String owner, String currentOwner){
         setTitle(title);
         setAuthor(author);
         setOriginalOwner(owner);
-        setCurrentOwner(owner);
+        setCurrentOwner(currentOwner);
     }
 
     public String getTitle() {

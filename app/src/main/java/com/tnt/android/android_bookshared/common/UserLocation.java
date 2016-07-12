@@ -1,42 +1,24 @@
 package com.tnt.android.android_bookshared.common;
 
-
-public class User {
+/**
+ * Created by USER on 11.7.2016 г..
+ */
+public class UserLocation {
 
     private String username;
-    private String password;
-    private String name;
     private float latitude;
     private float longitude;
 
-    public User(String username, String password, String name) {
-        setUsername(username);
-        setPassword(password);
-        setName(name);
+    public UserLocation(String username) {
+       setUsername(username);
     }
 
     public String getUsername() {
         return username;
     }
 
-    public void setUsername(String username) {
+    private void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public float getLatitude() {

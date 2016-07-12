@@ -3,6 +3,7 @@ package com.tnt.android.android_bookshared.database;
 import android.content.Context;
 import android.database.Cursor;
 
+import com.tnt.android.android_bookshared.common.Book;
 import com.tnt.android.android_bookshared.common.User;
 
 
@@ -26,8 +27,28 @@ public class UserDbUtils {
         db.insertUser(user);
     }
 
+    public void writeUserRecord(String username, double latitude, double longitude) {
+        db.insertUser(username,latitude, longitude);
+    }
+
+    public void updateUserLocation(String username, double latitude, double longitude){
+        db.updateUserLocation(username, latitude, longitude);
+    }
+
     public Cursor readUserRecord() {
         return db.getUserValues();
+    }
+
+    public void writeBookRecord(Book book) {
+        db.insertBook(book);
+    }
+
+    public void updateBook(int id, String username){
+        db.updateBookCurrentOwner(id, username);
+    }
+
+    public Cursor readBookRecord() {
+        return db.getBookValues();
     }
 
     private UserDbHelper initDB(Context context) {

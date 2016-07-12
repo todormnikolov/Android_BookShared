@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -15,11 +16,9 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
-import com.firebase.geofire.GeoFire;
-import com.firebase.geofire.GeoLocation;
-import com.firebase.geofire.LocationCallback;
 import com.tnt.android.android_bookshared.database.FirebaseDB;
 import com.tnt.android.android_bookshared.database.SharedPreferencesUtils;
+import com.tnt.android.android_bookshared.database.UserDbHelper;
 
 public class LogInActivity extends AppCompatActivity {
 
@@ -31,7 +30,6 @@ public class LogInActivity extends AppCompatActivity {
 
     private String inputUsername;
     private String inputPassword;
-    boolean isLoginSuccess;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,15 +47,16 @@ public class LogInActivity extends AppCompatActivity {
         btnSignUp.setOnClickListener(signUpUserClick);
 
         //deleteDatabase(UserDbHelper.DB_NAME);
+        //deleteSharedPreference(SharedPreferencesUtils.SP_USER);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        SharedPreferences sp = getSharedPreferences("user_details", MODE_PRIVATE);
-        boolean isLogged = sp.getBoolean("isLogged", false);
-        boolean hasAutoLogin = sp.getBoolean("autoLogin", false);
+        SharedPreferences sp = getSharedPreferences(SharedPreferencesUtils.SP_USER, MODE_PRIVATE);
+        boolean isLogged = sp.getBoolean(SharedPreferencesUtils.SP_IS_LOGGED, false);
+        boolean hasAutoLogin = sp.getBoolean(SharedPreferencesUtils.SP_AUTO_LOGIN, false);
 
         if (isNetworkConnected() && isLogged && hasAutoLogin) {
             Intent intent = new Intent(LogInActivity.this, MainActivity.class);
@@ -75,86 +74,89 @@ public class LogInActivity extends AppCompatActivity {
             if (!isNetworkConnected()) {
                 Toast.makeText(getApplicationContext(), "For further using BOOKSHARED you must have a Internet connection. Connect to Internet and then try to log in again", Toast.LENGTH_LONG).show();
             } else {
-                SharedPreferences sp = getSharedPreferences("user_details", MODE_PRIVATE);
-                String currentUsername = sp.getString("username", "");
+                SharedPreferences sp = getSharedPreferences(SharedPreferencesUtils.SP_USER, MODE_PRIVATE);
+                String currentUsername = sp.getString(SharedPreferencesUtils.SP_USERNAME, "");
 
                 if (!currentUsername.equals("")) {
                     if (inputUsername.equals(currentUsername)) {
-                        String pass = sp.getString("password", "");
+                        String pass = sp.getString(SharedPreferencesUtils.SP_PASSWORD, "");
 
                         if (pass.equals(inputPassword)) {
-                            sp.edit().putBoolean("isLogged", true).apply();
-                            sp.edit().putBoolean("autoLogin", checkAutoLogin.isChecked()).apply();
+                            sp.edit().putBoolean(SharedPreferencesUtils.SP_IS_LOGGED, true).apply();
+                            sp.edit().putBoolean(SharedPreferencesUtils.SP_AUTO_LOGIN, checkAutoLogin.isChecked()).apply();
 
-                            isLoginSuccess = true;
+                            createIntent();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Wrong password! Try again", Toast.LENGTH_LONG).show();
                         }
                     } else {
-                        Firebase ref = new Firebase("https://bookshared-9cc21.firebaseio.com/users");
+                        Firebase ref = new Firebase(FirebaseDB.DB_REF).child(FirebaseDB.USERS);
                         ref.addValueEventListener(usernameExistsFirebase);
                     }
-                }
-
-                if (isLoginSuccess) {
-                    Intent intent = new Intent(LogInActivity.this, MainActivity.class);
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(getApplicationContext(), "Wrong username or password! Try again", Toast.LENGTH_LONG).show();
                 }
             }
         }
 
     };
 
+    private void createIntent() {
+        Intent intent = new Intent(LogInActivity.this, MainActivity.class);
+        startActivity(intent);
+    }
+
     private void deleteSharedPreference(String name) {
         getSharedPreferences(name, 0).edit().clear().apply();
     }
 
     ValueEventListener usernameExistsFirebase = new ValueEventListener() {
-
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
+            boolean isFoundUser = false;
+            boolean isMatchPassword = false;
             for (DataSnapshot sn : dataSnapshot.getChildren()) {
                 if (inputUsername.equals(sn.getKey())) {
+                    isFoundUser = true;
                     for (DataSnapshot sn1 : sn.getChildren()) {
-                        if (sn1.getKey().equals("password")) {
+                        if (sn1.getKey().equals(FirebaseDB.CHILD_PASSWORD)) {
                             if (sn1.getValue().equals(inputPassword)) {
+                                isMatchPassword = true;
                                 deleteSharedPreference(SharedPreferencesUtils.SP_USER);
 
-                                SharedPreferences sp = getSharedPreferences("user_details", MODE_PRIVATE);
-                                sp.edit().putString("username", inputUsername).apply();
-                                sp.edit().putString("password", inputPassword).apply();
-                                sp.edit().putBoolean("isLogged", true).apply();
-                                sp.edit().putBoolean("autoLogin", checkAutoLogin.isChecked()).apply();
+                                SharedPreferences sp = getSharedPreferences(SharedPreferencesUtils.SP_USER, MODE_PRIVATE);
+                                sp.edit().putString(SharedPreferencesUtils.SP_USERNAME, inputUsername).apply();
+                                sp.edit().putString(SharedPreferencesUtils.SP_PASSWORD, inputPassword).apply();
+                                sp.edit().putBoolean(SharedPreferencesUtils.SP_IS_LOGGED, true).apply();
+                                sp.edit().putBoolean(SharedPreferencesUtils.SP_AUTO_LOGIN, checkAutoLogin.isChecked()).apply();
 
-                                GeoFire geoFire = new GeoFire(new Firebase(FirebaseDB.DB_REF + ".child(" + FirebaseDB.USERS + ").child(" + inputUsername + ")"));
-                                geoFire.getLocation(FirebaseDB.LOCATION, new LocationCallback() {
-                                    @Override
-                                    public void onLocationResult(String key, GeoLocation location) {
-                                        if (location != null) {
-                                            SharedPreferences sp = getSharedPreferences("user_details", MODE_PRIVATE);
-                                            sp.edit().putFloat(SharedPreferencesUtils.SP_USER_LATITUDE, (float) location.latitude).apply();
-                                            sp.edit().putFloat(SharedPreferencesUtils.SP_USER_LONGITUDE, (float) location.longitude).apply();
-                                            isLoginSuccess = true;
-                                        } else {
-                                            isLoginSuccess = false;
-                                        }
-                                    }
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Wrong password! Try again", Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                        }
 
-                                    @Override
-                                    public void onCancelled(FirebaseError firebaseError) {
-                                        System.err.println("There was an error getting the GeoFire location: " + firebaseError);
-                                    }
-                                });
+                        if (isMatchPassword && String.valueOf(sn1.getKey()).equals(FirebaseDB.LOCATION)) {
+                            for (DataSnapshot sn2 : sn1.getChildren()) {
+                                SharedPreferences sp = getSharedPreferences(SharedPreferencesUtils.SP_USER, MODE_PRIVATE);
+
+                                if (String.valueOf(sn2.getKey()).equals(FirebaseDB.CHILD_LATITUDE)) {
+                                    sp.edit().putFloat(SharedPreferencesUtils.SP_USER_LATITUDE, (float) sn2.getValue()).apply();
+                                }
+                                if (String.valueOf(sn2.getKey()).equals(FirebaseDB.CHILD_LONGITUDE)) {
+                                    sp.edit().putFloat(SharedPreferencesUtils.SP_USER_LONGITUDE, (float) sn2.getValue()).apply();
+                                }
                             }
                         }
                     }
                 }
             }
+            if (!isFoundUser) {
+                Toast.makeText(getApplicationContext(), "Wrong username! Try again", Toast.LENGTH_LONG).show();
+            }
         }
 
         @Override
         public void onCancelled(FirebaseError firebaseError) {
-
+            Log.e("TAG", "There was an error getting the Firebase data: " + firebaseError);
         }
     };
 
