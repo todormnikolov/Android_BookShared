@@ -245,10 +245,6 @@ public class MainActivity extends AppCompatActivity {
 
                 for (Book book : books) {
                     if ((book.getTitle()).equals(title) && (book.getAuthor()).equals(author) && (book.getOriginalOwner()).equals(originalOwner)) {
-//                        Log.e("TAG", "book.getTitle() = " + book.getTitle());
-//                        Log.e("TAG", "book.getAuthor() = " + book.getAuthor());
-//                        Log.e("TAG", "book.getOriginalOwner() = " + book.getOriginalOwner());
-//                        Log.e("TAG", "book.getCurrentOwner() = " + book.getCurrentOwner());
 
 //                        if (!((book.getCurrentOwner()).equals(currentOwner))) {
 //                            db.updateBook(cursor.getColumnIndex(UserDbHelper.KEY_ID), book.getCurrentOwner());
