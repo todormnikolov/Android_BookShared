@@ -383,7 +383,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.book_search) {
 
-            Toast.makeText(getApplicationContext(), "This function don\'t work yet", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "This function don\'t work yet. Coming soon ..", Toast.LENGTH_SHORT).show();
 
             return true;
 
