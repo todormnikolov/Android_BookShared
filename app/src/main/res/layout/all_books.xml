@@ -3,13 +3,11 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <TextView
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rec_view_all_books"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="All books"
-        android:gravity="center"
-        android:textSize="40sp"
-        android:textColor="#000"
-        android:textStyle="bold"/>
+        android:layout_height="match_parent">
+
+    </android.support.v7.widget.RecyclerView>
 
 </LinearLayout>

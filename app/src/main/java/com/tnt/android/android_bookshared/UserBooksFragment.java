@@ -47,11 +47,11 @@ public class UserBooksFragment extends Fragment implements View.OnClickListener 
         btnAddBook.setOnClickListener(this);
 
         recViewUser.setLayoutManager(new LinearLayoutManager(getActivity()));
-        
+
         return view;
     }
 
-    private ArrayList<Book> getUserBooks() {
+    private ArrayList<Book> getAllBooks() {
         ArrayList<Book> books = new ArrayList<>();
 
         SharedPreferences sp = getActivity().getSharedPreferences(SharedPreferencesUtils.SP_USER, Context.MODE_PRIVATE);
@@ -82,7 +82,7 @@ public class UserBooksFragment extends Fragment implements View.OnClickListener 
     @Override
     public void onResume() {
         super.onResume();
-        books = getUserBooks();
+        books = getAllBooks();
         recViewUser.setAdapter(new UserAdapter(getActivity(), books));
         recViewUser.getAdapter().notifyDataSetChanged();
     }
