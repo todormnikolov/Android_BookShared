@@ -1,8 +1,6 @@
 package com.tnt.android.android_bookshared.common;
 
-/**
- * Created by USER on 5.7.2016 г..
- */
+
 public class Book {
 
     private String title;

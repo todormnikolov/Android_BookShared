@@ -90,30 +90,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //to delete
-    private void printUserLocation(HashMap<String, Location> userLocations) {
-
-        Set set = userLocations.entrySet();
-        Iterator iterator = set.iterator();
-        while (iterator.hasNext()) {
-            Map.Entry entry = (Map.Entry) iterator.next();
-            String username = (String) entry.getKey();
-            Location location = (Location) entry.getValue();
-
-            Log.e("TAG", "Firebase user: Username: " + username + ", latitude: " + location.getLatitude() + ", longitude: " + location.getLongitude());
-        }
-
-    }
+//    private void printUserLocation(HashMap<String, Location> userLocations) {
+//
+//        Set set = userLocations.entrySet();
+//        Iterator iterator = set.iterator();
+//        while (iterator.hasNext()) {
+//            Map.Entry entry = (Map.Entry) iterator.next();
+//            String username = (String) entry.getKey();
+//            Location location = (Location) entry.getValue();
+//
+//            Log.e("TAG", "Firebase user: Username: " + username + ", latitude: " + location.getLatitude() + ", longitude: " + location.getLongitude());
+//        }
+//
+//    }
 
     //to delete
-    private void printUserBooks(ArrayList<Book> books) {
-        if (books != null && books.size() > 0) {
-            for (Book b : books) {
-                Log.e("TAG", "Book title: " + b.getTitle() + ", by " + b.getAuthor() + ", belongs to " + b.getOriginalOwner() + ", now is in " + b.getCurrentOwner());
-            }
-        } else {
-            Log.e("TAG", "Book array is empty");
-        }
-    }
+//    private void printUserBooks(ArrayList<Book> books) {
+//        if (books != null && books.size() > 0) {
+//            for (Book b : books) {
+//                Log.e("TAG", "Book title: " + b.getTitle() + ", by " + b.getAuthor() + ", belongs to " + b.getOriginalOwner() + ", now is in " + b.getCurrentOwner());
+//            }
+//        } else {
+//            Log.e("TAG", "Book array is empty");
+//        }
+//    }
 
     ValueEventListener getUsersFirebase = new ValueEventListener() {
         @Override
@@ -152,17 +152,15 @@ public class MainActivity extends AppCompatActivity {
                                 longitude = (double) sn2.getValue();
                             }
                         }
-                        Log.e("TAG", "Location -> Username: " + username + ", lat: " + latitude + ", long: " + longitude);
                         userLocations.put(username, new Location(latitude, longitude));
                     }
                 }
             }
 
             //to delete
-            printUserLocation(userLocations);
-            printUserBooks(books);
+            //printUserLocation(userLocations);
+            //printUserBooks(books);
             syncUsersData();
-
             readSQLiteUsers();
 
             if (books != null && books.size() > 0) {
@@ -194,6 +192,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     //to delete
     private void readSQLiteBooks() {
         Cursor cursor = db.readBookRecord();
@@ -211,6 +210,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private boolean bookRowExists(Book book) {
+        Cursor cursor = db.readBookRecord();
+        if (cursor.moveToFirst()) {
+            do {
+                String title = cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_TITLE));
+                String author = cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_AUTHOR));
+                String originalOwner = cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_ORIGINAL_OWNER));
+                String currentOwner = cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_CURRENT_OWNER));
+
+//                if (book.getTitle().equals(title) && book.getAuthor().equals(author)
+//                        && book.getOriginalOwner().equals(originalOwner) && book.getCurrentOwner().equals(currentOwner)) {
+//                    return true;
+//                }
+
+                if (book.getTitle().equals(title) && book.getAuthor().equals(author)
+                        && book.getOriginalOwner().equals(originalOwner)) {
+                    return true;
+                }
+            } while (cursor.moveToNext());
+        }
+
+        return false;
+    }
+
     private void syncBooksData() {
         Cursor cursor = db.readBookRecord();
         if (cursor.moveToFirst()) {
@@ -218,29 +241,53 @@ public class MainActivity extends AppCompatActivity {
                 String title = cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_TITLE));
                 String author = cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_AUTHOR));
                 String originalOwner = cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_ORIGINAL_OWNER));
+                //String currentOwner = cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_CURRENT_OWNER));
 
-                int length = books.size();
-                if (length > 0) {
-                    for (int i = 0; i < length; i++) {
-                        if (books.get(i).getTitle().equals(title) && books.get(i).getAuthor().equals(author) && books.get(i).getOriginalOwner().equals(originalOwner)) {
-                            String currentOwner = cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_ORIGINAL_OWNER));
-                            if (books.get(i).getCurrentOwner().equals(currentOwner)) {
-                                books.remove(i);
-                                break;
-                            } else {
-                                db.updateBook(cursor.getInt(cursor.getColumnIndex(UserDbHelper.KEY_ID)), books.get(i).getCurrentOwner());
-                            }
-                        }
+                for (Book book : books) {
+                    if ((book.getTitle()).equals(title) && (book.getAuthor()).equals(author) && (book.getOriginalOwner()).equals(originalOwner)) {
+//                        Log.e("TAG", "book.getTitle() = " + book.getTitle());
+//                        Log.e("TAG", "book.getAuthor() = " + book.getAuthor());
+//                        Log.e("TAG", "book.getOriginalOwner() = " + book.getOriginalOwner());
+//                        Log.e("TAG", "book.getCurrentOwner() = " + book.getCurrentOwner());
+
+//                        if (!((book.getCurrentOwner()).equals(currentOwner))) {
+//                            db.updateBook(cursor.getColumnIndex(UserDbHelper.KEY_ID), book.getCurrentOwner());
+//                        } else {
+                        break;
+                        //}
                     }
+                }
+
+            } while (cursor.moveToNext());
+        }
+
+        if (books.size() > 0)
+
+        {
+            for (Book book : books) {
+
+                if (!bookRowExists(book)) {
+                    db.writeBookRecord(book);
+                }
+            }
+        }
+    }
+
+    private boolean userRowExists(String username, double latitude, double longitude) {
+        Cursor cursor = db.readUserRecord();
+        if (cursor.moveToFirst()) {
+            do {
+                String usernameDb = cursor.getString(cursor.getColumnIndex(UserDbHelper.KEY_USERNAME));
+                double latitudeDb = cursor.getDouble(cursor.getColumnIndex(UserDbHelper.KEY_LATITUDE));
+                double longitudeDb = cursor.getDouble(cursor.getColumnIndex(UserDbHelper.KEY_LONGITUDE));
+
+                if (username.equals(usernameDb) && latitude == latitudeDb && longitude == longitudeDb) {
+                    return true;
                 }
             } while (cursor.moveToNext());
         }
 
-        if (books.size() > 0) {
-            for (Book book : books) {
-                db.writeBookRecord(book);
-            }
-        }
+        return false;
     }
 
     private void syncUsersData() {
@@ -270,7 +317,9 @@ public class MainActivity extends AppCompatActivity {
             String username = (String) entry.getKey();
             Location location = (Location) entry.getValue();
 
-            db.writeUserRecord(username, location.getLatitude(), location.getLongitude());
+            if (!userRowExists(username, location.getLatitude(), location.getLongitude())) {
+                db.writeUserRecord(username, location.getLatitude(), location.getLongitude());
+            }
         }
     }
 

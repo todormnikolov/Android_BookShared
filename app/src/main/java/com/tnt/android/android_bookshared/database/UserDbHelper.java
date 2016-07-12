@@ -15,7 +15,7 @@ public class UserDbHelper extends SQLiteOpenHelper {
 
     //Constants for User table
     public static final String DB_NAME = "db_users";
-    public static final int DB_VERSION = 17;
+    public static final int DB_VERSION = 19;
     public static final String DB_TABLE_USERS = "DB_TABLE_USERS";
     public static final String KEY_USERNAME = "USERNAME";
     public static final String KEY_LATITUDE = "LATITUDE";
@@ -43,20 +43,20 @@ public class UserDbHelper extends SQLiteOpenHelper {
     }
 
     public void insertUser(String username, double latitude, double longitude) {
-        ContentValues cv = new ContentValues();
-        cv.put(KEY_USERNAME, username);
-        cv.put(KEY_LATITUDE, latitude);
-        cv.put(KEY_LONGITUDE, longitude);
-        database.insert(DB_TABLE_USERS, null, cv);
+            ContentValues cv = new ContentValues();
+            cv.put(KEY_USERNAME, username);
+            cv.put(KEY_LATITUDE, latitude);
+            cv.put(KEY_LONGITUDE, longitude);
+            database.insert(DB_TABLE_USERS, null, cv);
     }
 
     public void insertBook(Book book) {
-        ContentValues cv = new ContentValues();
-        cv.put(KEY_TITLE, book.getTitle());
-        cv.put(KEY_AUTHOR, book.getAuthor());
-        cv.put(KEY_ORIGINAL_OWNER, book.getOriginalOwner());
-        cv.put(KEY_CURRENT_OWNER, book.getCurrentOwner());
-        database.insert(DB_TABLE_BOOKS, null, cv);
+            ContentValues cv = new ContentValues();
+            cv.put(KEY_TITLE, book.getTitle());
+            cv.put(KEY_AUTHOR, book.getAuthor());
+            cv.put(KEY_ORIGINAL_OWNER, book.getOriginalOwner());
+            cv.put(KEY_CURRENT_OWNER, book.getCurrentOwner());
+            database.insert(DB_TABLE_BOOKS, null, cv);
     }
 
     public void updateUserLocation(String username, double latitude, double longitude) {
